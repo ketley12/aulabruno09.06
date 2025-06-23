@@ -1,25 +1,40 @@
 import { StyleSheet, ScrollView, View, Text, TouchableOpacity } from 'react-native';
 
-export default function ScrollScreen({ navigation }:any) {
-return (
-<View style={styles.container}>
-<Text style={styles.title}>Tela com ScrollView</Text>
-<ScrollView style={styles.scrollContainer}>
-{Array.from({ length: 20}).map((_, index) => (
-<View key={index} style={styles.item}>
-<Text style={styles.itemText}>Item {index + 1}</Text>
-</View>
-))}
-</ScrollView>
-<TouchableOpacity
-style={styles.button}
-onPress={() => navigation.navigate('Home')}>
-  <Text style={styles.buttonText}>Voltar para Home</Text>
-</TouchableOpacity>
-</View>
-);
-}
+import React, { useState } from 'react';
+export default function ScrollScreen({ navigation }: any) {
+  const [clickCount, setClickCount] = useState(0);
 
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Tela com ScrollView</Text>
+
+      <Text style={styles.counterText}>Itens clicados: {clickCount}</Text>
+      
+      <ScrollView style={styles.scrollContainer}>
+        {Array.from({ length: 20 }).map((_, index) => (
+          
+          <TouchableOpacity
+            key={index}
+            style={styles.item}
+            onPress={() => {
+              setClickCount((prevCount) => prevCount + 1);
+              navigation.navigate('Details', { mensagem: `Item ${index + 1}`, index: index + 1 });
+            }}
+          >
+            <Text style={styles.itemText}>Item {index + 1}</Text>
+          </TouchableOpacity>
+
+        ))}
+      </ScrollView>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Text style={styles.buttonText}>Voltar para Home</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
 container: {
@@ -60,5 +75,11 @@ buttonText: {
 color: '#fff',
 fontSize: 16,
 fontWeight: 'bold',
+},
+counterText: {
+  fontSize: 18,
+  color: '#007bff',
+  textAlign: 'center',
+  marginVertical: 10,
 },
 });

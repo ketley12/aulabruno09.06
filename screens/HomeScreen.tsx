@@ -1,4 +1,6 @@
 import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { useState, useEffect } from 'react';
+
 
 const DATA = [
 {id: '1', title: 'Item 1', description: 'Descrição do item 1'},
@@ -11,6 +13,17 @@ const DATA = [
 
 
 export default function HomeScreen({ navigation }:any) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+if (count === 5) {
+  alert('Parabéns!\nVocê atingiu 5 cliques!', );
+} else if (count === 0) {
+  alert('Resetado\nO contador foi zerado!');
+};
+
+}, [count]);
+
 const renderItem = ({ item }:any) => (
 <TouchableOpacity
 style={styles.card}
@@ -22,24 +35,46 @@ onPress={() => navigation.navigate('Details', { item})}
 );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Lista ou Itens</Text> 
-      <FlatList
-      data={DATA}
-      renderItem={renderItem}
-      keyExtractor={item => item.id}
-      style={styles.list}
-/>
-      <TouchableOpacity
-  style={[styles.button, { backgroundColor: '#28a745',marginTop: 20 }]}
-  onPress={() => navigation.navigate('Profile')}
->
-  <Text style={styles.buttonText}>Ir para Perfil</Text>
-</TouchableOpacity>
+<View style={styles.container}>
+  <Text style={styles.title}>Lista ou Itens</Text> 
 
-    </View>
-  )
-  
+  <View style={styles.counterContainer}>
+    <Text style={styles.counterText}>Contador: {count}</Text>
+  <TouchableOpacity
+    style={styles.counterButton}
+    onPress={() => setCount((prev) => prev + 1)}
+  >
+    <Text style={styles.buttonText}>Incrementar</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={styles.counterButton}
+    onPress={() => setCount((prev) => prev - 1)}
+  >
+    <Text style={styles.buttonText}>Decrementar</Text>
+  </TouchableOpacity>
+</View>
+
+  <FlatList
+    data={DATA}
+    renderItem={renderItem}
+    keyExtractor={item => item.id}
+    style={styles.list}
+  />
+  <TouchableOpacity
+    style={[styles.counterButton, { backgroundColor: '#dc3545' }]}
+    onPress={() => setCount(0)}
+  >
+    <Text style={styles.buttonText}>Resetar</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={[styles.button, { backgroundColor: '#28a745', marginTop: 20 }]}
+    onPress={() => navigation.navigate('Profile')}
+  >
+    <Text style={styles.buttonText}>Ir para Perfil</Text>
+  </TouchableOpacity>
+</View>
+  );
 }
 
 
@@ -84,6 +119,18 @@ backgroundColor: '#fff',
     color: '#666',
     marginTop: 5,
   },
+  counterText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
   button: {
     backgroundColor: '#007bff',
     paddingVertical: 10,
@@ -93,7 +140,17 @@ backgroundColor: '#fff',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
   },
+  counterButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
 });
+
+
