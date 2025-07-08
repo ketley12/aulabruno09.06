@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
-export default function TaskCard({ title, completed, onPress, onToggle }:any) {
+export default function TaskCard({ title, completed, onPress, onToggle, userId }:any) {
   return (
     <View style={[styles.cardContainer, completed && styles.completedContainer]}>
       <TouchableOpacity style={styles.card} onPress={onPress} disabled={!onPress}>
@@ -13,6 +13,7 @@ export default function TaskCard({ title, completed, onPress, onToggle }:any) {
           <Text style={styles.toggleText}>{completed ? '✔' : '○'}</Text>
         </TouchableOpacity>
       )}
+      <Text style={styles.sourceText}>{!userId ? 'Local' : 'API'}</Text>
     </View>
   );
 }
@@ -54,5 +55,10 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 20,
     color: '#007bff',
+  },
+  sourceText: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 5,
   },
 });

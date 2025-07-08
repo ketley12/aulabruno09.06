@@ -1,12 +1,14 @@
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import TaskCard from './TaskCard';
 
 export default function HomeScreen({ navigation }: any) {
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [apiTasks, setApiTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     setIsLoading(true);
@@ -42,28 +44,13 @@ export default function HomeScreen({ navigation }: any) {
   const renderItem = ({ item }: any) => {
     const isLocal = typeof item.id === 'string';
     return (
-      <TouchableOpacity
-        style={[
-          styles.card,
-          item.completed && { backgroundColor: '#d4edda', borderColor: '#28a745' },
-        ]}
-        onPressIn={
-          isLocal
-            ? () => navigation.navigate('Details', { task: item })
-            : undefined
-        }
-        onLongPress={
-          isLocal
-            ? () => toggleTaskCompletion(item.id)
-            : undefined
-        }
-      >
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardDescription}>{item.description}</Text>
-        {item.completed && (
-          <Text style={{ color: '#28a745', marginTop: 5 }}>Concluída</Text>
-        )}
-      </TouchableOpacity>
+      <TaskCard
+        title={item.title}
+        completed={item.completed}
+        onPress={isLocal ? () => navigation.navigate('Details', { task: item }) : null}
+        onToggle={isLocal ? () => toggleTaskCompletion(item.id) : null}
+        userId={item.userId}
+      />
     );
   };
 
@@ -73,6 +60,28 @@ export default function HomeScreen({ navigation }: any) {
       <Text style={styles.counterText}>
         Tarefas: {allTasks.length} | Concluídas: {allTasks.filter((task) => task.completed).length}
       </Text>
+
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'all' && styles.activeFilter]}
+          onPress={() => setFilter('all')}
+        >
+          <Text style={styles.filterText}>Todas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'pending' && styles.activeFilter]}
+          onPress={() => setFilter('pending')}
+        >
+          <Text style={styles.filterText}>Pendentes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'completed' && styles.activeFilter]}
+          onPress={() => setFilter('completed')}
+        >
+          <Text style={styles.filterText}>Concluídas</Text>
+        </TouchableOpacity>
+      </View>
+
       {isLoading ? (
         <ActivityIndicator size="large" color="#007bff" />
       ) : error ? (
@@ -81,13 +90,14 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.emptyText}>Nenhuma tarefa adicionada</Text>
       ) : (
         <FlatList
-          data={allTasks}
+          data={filteredTasks}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           style={styles.list}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
+
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => navigation.navigate('AddTask', { addTask })}
@@ -172,6 +182,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 10,
+  },
+  filterButton: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#ddd',
+  },
+  activeFilter: {
+    backgroundColor: '#007bff',
+  },
+  filterText: {
+    color: '#fff',
+    fontSize: 14,
   },
 });
 
