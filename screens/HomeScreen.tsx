@@ -1,83 +1,102 @@
-import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-
-const DATA = [
-{id: '1', title: 'Item 1', description: 'Descrição do item 1'},
-{id: '2', title: 'Item 2', description: 'Descrição do item 2'},
-{id: '3', title: 'Item 3', description: 'Descrição do item 3'},
-{id: '4', title: 'Item 4', description: 'Descrição do item 4'}, 
-{id: '5', title: 'Item 5', description: 'Descrição do item 5'},
-];  
-
-
-
-export default function HomeScreen({ navigation }:any) {
-  const [count, setCount] = useState(0);
+export default function HomeScreen({ navigation }: any) {
+  const [localTasks, setLocalTasks] = useState<any[]>([]);
+  const [apiTasks, setApiTasks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-if (count === 5) {
-  alert('Parabéns!\nVocê atingiu 5 cliques!', );
-} else if (count === 0) {
-  alert('Resetado\nO contador foi zerado!');
-};
+    setIsLoading(true);
+    axios
+      .get('https://jsonplaceholder.typicode.com/todos?_limit=5')
+      .then((response) => {
+        setApiTasks(response.data);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setError('Erro ao carregar tarefas da API');
+        setIsLoading(false);
+      });
+  }, []);
 
-}, [count]);
+  const addTask = ({ title, description }: { title: string; description?: string }) => {
+    setLocalTasks((prev) => [
+      ...prev,
+      { id: Date.now().toString(), title, description: description || '', completed: false },
+    ]);
+  };
 
-const renderItem = ({ item }:any) => (
-<TouchableOpacity
-style={styles.card}
-onPress={() => navigation.navigate('Details', { item})}
->
-<Text style={styles.cardTitle}>{item.title}</Text>
-<Text style={styles.cardDescription}>{item.description}</Text>
-</TouchableOpacity>
-);
+  const toggleTaskCompletion = (id: string) => {
+    setLocalTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const allTasks = [...apiTasks, ...localTasks];
+
+  const renderItem = ({ item }: any) => {
+    const isLocal = typeof item.id === 'string';
+    return (
+      <TouchableOpacity
+        style={[
+          styles.card,
+          item.completed && { backgroundColor: '#d4edda', borderColor: '#28a745' },
+        ]}
+        onPressIn={
+          isLocal
+            ? () => navigation.navigate('Details', { task: item })
+            : undefined
+        }
+        onLongPress={
+          isLocal
+            ? () => toggleTaskCompletion(item.id)
+            : undefined
+        }
+      >
+        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardDescription}>{item.description}</Text>
+        {item.completed && (
+          <Text style={{ color: '#28a745', marginTop: 5 }}>Concluída</Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
-<View style={styles.container}>
-  <Text style={styles.title}>Lista ou Itens</Text> 
-
-  <View style={styles.counterContainer}>
-    <Text style={styles.counterText}>Contador: {count}</Text>
-  <TouchableOpacity
-    style={styles.counterButton}
-    onPress={() => setCount((prev) => prev + 1)}
-  >
-    <Text style={styles.buttonText}>Incrementar</Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-    style={styles.counterButton}
-    onPress={() => setCount((prev) => prev - 1)}
-  >
-    <Text style={styles.buttonText}>Decrementar</Text>
-  </TouchableOpacity>
-</View>
-
-  <FlatList
-    data={DATA}
-    renderItem={renderItem}
-    keyExtractor={item => item.id}
-    style={styles.list}
-  />
-  <TouchableOpacity
-    style={[styles.counterButton, { backgroundColor: '#dc3545' }]}
-    onPress={() => setCount(0)}
-  >
-    <Text style={styles.buttonText}>Resetar</Text>
-  </TouchableOpacity>
-
-  <TouchableOpacity
-    style={[styles.button, { backgroundColor: '#28a745', marginTop: 20 }]}
-    onPress={() => navigation.navigate('Profile')}
-  >
-    <Text style={styles.buttonText}>Ir para Perfil</Text>
-  </TouchableOpacity>
-</View>
+    <View style={styles.container}>
+      <Text style={styles.title}>Minhas Tarefas</Text>
+      <Text style={styles.counterText}>
+        Tarefas: {allTasks.length} | Concluídas: {allTasks.filter((task) => task.completed).length}
+      </Text>
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#007bff" />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : allTasks.length === 0 ? (
+        <Text style={styles.emptyText}>Nenhuma tarefa adicionada</Text>
+      ) : (
+        <FlatList
+          data={allTasks}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          style={styles.list}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => navigation.navigate('AddTask', { addTask })}
+      >
+        <Text style={styles.buttonText}>Adicionar Tarefa</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -88,16 +107,38 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
     color: '#333',
     textAlign: 'center',
-
+  },
+  counterText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#dc3545',
+    textAlign: 'center',
+    marginTop: 20,
   },
   list: {
     flex: 1,
   },
-  card:{
-backgroundColor: '#fff',
+  separator: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 5,
+  },
+  card: {
+    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
@@ -119,37 +160,18 @@ backgroundColor: '#fff',
     color: '#666',
     marginTop: 5,
   },
-  counterText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  counterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 10,
+  addButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: 'center',
+    marginTop: 10,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 'bold',
-  },
-  counterButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
   },
 });
 
