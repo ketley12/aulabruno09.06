@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   toggleText: {
-    fontSize: 20,
-    color: '#007bff',
+    fontSize: 32,
+    color: 'green',
   },
   sourceText: {
     fontSize: 12,

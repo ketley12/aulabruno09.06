@@ -41,6 +41,14 @@ export default function HomeScreen({ navigation }: any) {
 
   const allTasks = [...apiTasks, ...localTasks];
 
+ 
+  const filteredTasks = allTasks.filter((task) => {
+    if (filter === 'all') return true;
+    if (filter === 'pending') return !task.completed;
+    if (filter === 'completed') return task.completed;
+    return true;
+  });
+
   const renderItem = ({ item }: any) => {
     const isLocal = typeof item.id === 'string';
     return (
@@ -60,28 +68,6 @@ export default function HomeScreen({ navigation }: any) {
       <Text style={styles.counterText}>
         Tarefas: {allTasks.length} | Concluídas: {allTasks.filter((task) => task.completed).length}
       </Text>
-
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'all' && styles.activeFilter]}
-          onPress={() => setFilter('all')}
-        >
-          <Text style={styles.filterText}>Todas</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'pending' && styles.activeFilter]}
-          onPress={() => setFilter('pending')}
-        >
-          <Text style={styles.filterText}>Pendentes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'completed' && styles.activeFilter]}
-          onPress={() => setFilter('completed')}
-        >
-          <Text style={styles.filterText}>Concluídas</Text>
-        </TouchableOpacity>
-      </View>
-
       {isLoading ? (
         <ActivityIndicator size="large" color="#007bff" />
       ) : error ? (
@@ -90,14 +76,13 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.emptyText}>Nenhuma tarefa adicionada</Text>
       ) : (
         <FlatList
-          data={filteredTasks}
+          data={allTasks}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           style={styles.list}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
-
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => navigation.navigate('AddTask', { addTask })}
