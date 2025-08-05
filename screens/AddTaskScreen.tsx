@@ -1,82 +1,77 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, Task } from 'react-native';
+import axios from 'axios';
+import CustomInput from '../componentes/CustomImput';
+import CustomButton from '../componentes/CustomButton';
+import { useTasks } from './contexts/TaskContext';
 
-export default function AddTaskScreen({ navigation, route }:any) {
-  const { addTask } = route.params;
+
+export default function AddTaskScreen({ navigation}: any) {
+  const {addTask}= useTasks();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleAddTask = () => {
-    if (title.trim() === '') {
-      Alert.alert('Erro', 'O título da tarefa é obrigatório.');
+  const handleAddTask = async () => {
+    if (!title.trim()) {
+      Alert.alert('Erro', 'Por favor, insira o título da tarefa.');
       return;
     }
 
-    addTask({ title, description });
-    navigation.goBack();
+    try {
+      const response = await axios.post('https://jsonplaceholder.typicode.com/todos', {
+        title,
+        completed: false,
+      });
+
+      const newTask: Task = {
+        id: response?.data?.id?.toString() || Date.now().toString(), 
+        title,
+        description,
+      };
+
+      addTask(newTask);
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Erro', 'Falha ao salvar na API.');
+      console.error('Erro ao adicionar tarefa:', error);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Título da Tarefa</Text>
-      <TextInput
-        style={styles.input}
+      <CustomInput
         value={title}
-        onChangeText={setTitle}
-        placeholder="Digite o título"
+        onChangeText={(text: string) => setTitle(text.slice(0, 50))}
+        placeholder="Digite o título da tarefa (máx. 50 caracteres)"
       />
-
-      <Text style={styles.label}>Descrição</Text>
-      <TextInput
-        style={[styles.input, styles.multiline]}
+      <Text style={styles.label}>Descrição (opcional)</Text>
+      <CustomInput
         value={description}
         onChangeText={setDescription}
-        placeholder="Digite a descrição (opcional)"
+        placeholder="Digite a descrição"
         multiline
-        numberOfLines={4}
       />
-
-        <TouchableOpacity style={styles.button} onPress={handleAddTask}>
-          <Text style={styles.buttonText}>Adicionar</Text>
-        </TouchableOpacity>
-      </View>
+      <CustomButton title="Salvar Tarefa" onPress={handleAddTask} color="#007bff" />
+      <CustomButton title="Cancelar" onPress={() => navigation.goBack()} color="#dc3545" />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    alignSelf: 'flex-start',
+    marginBottom: 5,
     marginTop: 10,
-  },
-  input: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginTop: 5,
-  },
-  multiline: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  button: {
-    backgroundColor: '#28a745',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 });
