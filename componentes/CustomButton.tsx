@@ -1,4 +1,5 @@
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+
 export default function CustomButton({ title, onPress, color = '#007bff', style, textStyle }:any) {
 return (
 <TouchableOpacity

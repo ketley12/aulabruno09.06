@@ -1,44 +1,41 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Alert, Task } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 import CustomInput from '../componentes/CustomImput';
 import CustomButton from '../componentes/CustomButton';
 import { useTasks } from './contexts/TaskContext';
-
-
-export default function AddTaskScreen({ navigation}: any) {
-  const {addTask}= useTasks();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+const AddTaskScreen = ({ route, navigation }: any) => {
+  const task = route?.params?.task;
+  const { addTask, deleteTask } = useTasks();
+  const [title, setTitle] = useState(task?.title || "");
+  const [description, setDescription] = useState(task?.description || "");
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleAddTask = async () => {
-    if (!title.trim()) {
+    if (title.trim()) {
+      try {
+        const response = await axios.post('https://jsonplaceholder.typicode.com/todos', {
+          title,
+          completed: false,
+        });
+        if (task) deleteTask(task.id);
+        addTask({ title, description });
+        setSuccessMessage('Tarefa adicionada com sucesso!');
+        setTimeout(() => {
+          setSuccessMessage('');
+          navigation.goBack();
+        }, 2000);
+      } catch (err) {
+        Alert.alert('Erro', 'Falha ao salvar ');
+      }
+    } else {
       Alert.alert('Erro', 'Por favor, insira o título da tarefa.');
-      return;
-    }
-
-    try {
-      const response = await axios.post('https://jsonplaceholder.typicode.com/todos', {
-        title,
-        completed: false,
-      });
-
-      const newTask: Task = {
-        id: response?.data?.id?.toString() || Date.now().toString(), 
-        title,
-        description,
-      };
-
-      addTask(newTask);
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao salvar na API.');
-      console.error('Erro ao adicionar tarefa:', error);
     }
   };
 
   return (
     <View style={styles.container}>
+      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
       <Text style={styles.label}>Título da Tarefa</Text>
       <CustomInput
         value={title}
@@ -56,15 +53,23 @@ export default function AddTaskScreen({ navigation}: any) {
       <CustomButton title="Cancelar" onPress={() => navigation.goBack()} color="#dc3545" />
     </View>
   );
-}
+};
+
+export default AddTaskScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#dfffe1ff',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  successText: {
+    fontSize: 16,
+    color: '#28a745',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   label: {
     fontSize: 16,

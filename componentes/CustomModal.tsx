@@ -24,7 +24,7 @@ return (
             <CustomButton
             title={cancelText}
             onPress={onClose}
-            color="#dc3545"
+            color="#c42635ff"
             style={styles.modalButton}
             />
             <CustomButton

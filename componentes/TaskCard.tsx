@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   completedContainer: {
-    backgroundColor: '#e6f3ff',
+    backgroundColor: '#e6f3ffff',
   },
   card: {
     flex: 1,

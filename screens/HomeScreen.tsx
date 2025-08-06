@@ -6,42 +6,40 @@ import TaskCard from '../componentes/TaskCard';
 import { useTasks } from './contexts/TaskContext';
 
 export default function HomeScreen({ navigation }: any) {
-  const { localTasks, deleteTask, toggleTaskCompletion } = useTasks(); // usando o contexto
-
+  const { localTasks, deleteTask, toggleTaskCompletion, theme } = useTasks();
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [modalVisible, setModalVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
- 
   const filteredTasks = localTasks.filter(task => {
     if (filter === 'all') return true;
     if (filter === 'pending') return !task.completed;
     if (filter === 'completed') return task.completed;
   });
 
-  const renderItem = ({ item }: any) => {
-    return (
-      <>
-        <Text style={styles.sourceText}>Local</Text>
-        <TaskCard
-          title={item.title}
-          completed={item.completed}
-          onPress={() => navigation.navigate('Details', { task: item })}
-          onToggle={() => toggleTaskCompletion(item.id)}
-          onDelete={() => {
-            setTaskToDelete(item.id);
-            setModalVisible(true);
-          }}
-        />
-      </>
-    );
-  };
+  const renderItem = ({ item }: any) => (
+    <>
+      <Text style={styles.sourceText}>Local</Text>
+      <TaskCard
+        title={item.title}
+        completed={item.completed}
+        onPress={() => navigation.navigate('Details', { task: item })}
+        onToggle={() => toggleTaskCompletion(item.id)}
+        onDelete={() => {
+          setTaskToDelete(item.id);
+          setModalVisible(true);
+        }}
+      />
+    </>
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>𝐋𝐢𝐬𝐭𝐚 𝐃𝐞 𝐓𝐚𝐫𝐞𝐟𝐚𝐬</Text>
+    <View style={[styles.container, theme === 'dark' && { backgroundColor: '#222' }]}> 
+      <Text style={[styles.title, theme === 'dark' && { color: '#fff' }]}>𝐋𝐢𝐬𝐭𝐚 𝐃𝐞 𝐓𝐚𝐫𝐞𝐟𝐚𝐬</Text>
 
-     
+      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
+
       <View style={styles.filterContainer}>
         <CustomButton
           title="Todas"
@@ -63,7 +61,6 @@ export default function HomeScreen({ navigation }: any) {
         />
       </View>
 
-      
       <FlatList
         style={styles.list}
         data={filteredTasks}
@@ -71,14 +68,12 @@ export default function HomeScreen({ navigation }: any) {
         renderItem={renderItem}
       />
 
-      
       <CustomButton
         title="Adicionar Tarefa"
         onPress={() => navigation.navigate('AddTask')}
         color="#28a745"
       />
 
-      
       <CustomModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -89,6 +84,8 @@ export default function HomeScreen({ navigation }: any) {
             deleteTask(taskToDelete);
             setModalVisible(false);
             setTaskToDelete(null);
+            setSuccessMessage('Tarefa excluída com sucesso!');
+            setTimeout(() => setSuccessMessage(''), 2000);
           }
         }}
       />
@@ -99,8 +96,14 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffe4ed',
+    backgroundColor: '#e9c3faff',
     padding: 20,
+  },
+  successText: {
+    fontSize: 16,
+    color: '#28a745',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,

@@ -17,7 +17,7 @@ export default function App() {
             component={HomeScreen}
             options={{
               title: 'Lista de Tarefas',
-              headerStyle: { backgroundColor: '#007bff' },
+              headerStyle: { backgroundColor: '#631e9bff' },
               headerTintColor: '#fff',
             }}
           />
